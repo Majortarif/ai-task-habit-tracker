@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pulse — AI-Assisted Task & Habit Tracker</title>
+<meta name="description" content="A premium task and habit tracker with a smart, rule-based productivity coach." />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Sora', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+        },
+        colors: {
+          base: {
+            50: '#f5f7fb', 100:'#e9edf5', 200:'#cfd8e6', 300:'#a8b6cc',
+            400:'#78899f', 500:'#54637a', 600:'#3e4a5e', 700:'#2b3547',
+            800:'#1a2233', 900:'#111726', 950:'#0a0e18'
+          },
+          accent: {
+            50:'#eafff6', 100:'#c9ffe9', 200:'#94ffd6', 300:'#54f6bd',
+            400:'#22dba1', 500:'#0dbb88', 600:'#059669', 700:'#04785a',
+            800:'#065f49', 900:'#064e3d'
+          },
+          amber: { 400:'#fbbf24', 500:'#f59e0b' },
+          coral: { 400:'#fb7472', 500:'#f4534f' }
+        },
+        boxShadow: {
+          soft: '0 1px 2px rgba(10,14,24,0.06), 0 8px 24px -8px rgba(10,14,24,0.12)',
+          glow: '0 0 0 1px rgba(13,187,136,0.25), 0 8px 24px -6px rgba(13,187,136,0.35)'
+        }
+      }
+    }
+  }
+</script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="font-body bg-base-50 text-base-900 dark:bg-base-950 dark:text-base-100 transition-colors duration-300">
+
+<!-- ============ TOASTS ============ -->
+<div id="toastContainer" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm" aria-live="polite"></div>
+
+<!-- ============ TOP NAV ============ -->
+<header class="sticky top-0 z-40 backdrop-blur-md bg-base-50/80 dark:bg-base-950/80 border-b border-base-200 dark:border-base-800">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center shadow-glow">
+          <i class="fa-solid fa-wave-square text-base-950 text-sm"></i>
+        </div>
+        <span class="font-display font-bold text-lg tracking-tight">Pulse</span>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-1" id="mainNav">
+        <button data-nav="dashboard" class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Dashboard</button>
+        <button data-nav="tasks" class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Tasks</button>
+        <button data-nav="habits" class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Habits</button>
+        <button data-nav="coach" class="nav-link px-3 py-2 rounded-lg text-sm font-medium">AI Coach</button>
+        <button data-nav="analytics" class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Analytics</button>
+        <button data-nav="settings" class="nav-link px-3 py-2 rounded-lg text-sm font-medium">Settings</button>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <button id="themeToggle" aria-label="Toggle theme" class="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-base-200 dark:hover:bg-base-800 transition-colors">
+          <i class="fa-solid fa-moon dark:hidden"></i>
+          <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+        </button>
+        <button id="mobileMenuBtn" class="md:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-base-200 dark:hover:bg-base-800" aria-label="Open menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile nav -->
+    <nav id="mobileNav" class="md:hidden hidden pb-3 flex flex-col gap-1">
+      <button data-nav="dashboard" class="nav-link-mobile px-3 py-2.5 rounded-lg text-sm font-medium text-left">Dashboard</button>
+      <button data-nav="tasks" class="nav-link-mobile px-3 py-2.5 rounded-lg text-sm font-medium text-left">Tasks</button>
+      <button data-nav="habits" class="nav-link-mobile px-3 py-2.5 rounded-lg text-sm font-medium text-left">Habits</button>
+      <button data-nav="coach" class="nav-link-mobile px-3 py-2.5 rounded-lg text-sm font-medium text-left">AI Coach</button>
+      <button data-nav="analytics" class="nav-link-mobile px-3 py-2.5 rounded-lg text-sm font-medium text-left">Analytics</button>
+      <button data-nav="settings" class="nav-link-mobile px-3 py-2.5 rounded-lg text-sm font-medium text-left">Settings</button>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+
+  <!-- ============ DASHBOARD ============ -->
+  <section id="dashboard" class="section-block space-y-8">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <h1 id="greeting" class="font-display font-bold text-3xl sm:text-4xl tracking-tight">Good morning</h1>
+        <p id="todayDate" class="text-base-500 dark:text-base-400 mt-1"></p>
+      </div>
+      <p id="motivationLine" class="text-sm text-accent-600 dark:text-accent-400 font-medium max-w-sm sm:text-right"></p>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="stat-card">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold uppercase tracking-wide text-base-500 dark:text-base-400">Total Tasks</span>
+          <i class="fa-solid fa-list-check text-base-400 dark:text-base-500"></i>
+        </div>
+        <p class="font-display text-3xl font-bold" id="statTotalTasks">0</p>
+        <p class="text-xs text-base-500 dark:text-base-400 mt-2"><span id="statActiveTasks">0</span> active · <span id="statCompletedTasks">0</span> done</p>
+      </div>
+
+      <div class="stat-card">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold uppercase tracking-wide text-base-500 dark:text-base-400">Completion Rate</span>
+          <i class="fa-solid fa-chart-pie text-base-400 dark:text-base-500"></i>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="relative w-16 h-16 shrink-0">
+            <svg viewBox="0 0 36 36" class="w-16 h-16 -rotate-90">
+              <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" class="text-base-200 dark:text-base-800" stroke-width="3.5"></circle>
+              <circle id="completionRing" cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" class="text-accent-500" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="97.4"></circle>
+            </svg>
+            <span id="completionPct" class="absolute inset-0 flex items-center justify-center text-xs font-bold">0%</span>
+          </div>
+          <p class="text-xs text-base-500 dark:text-base-400">of all tasks completed</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold uppercase tracking-wide text-base-500 dark:text-base-400">Today's Habits</span>
+          <i class="fa-solid fa-seedling text-base-400 dark:text-base-500"></i>
+        </div>
+        <p class="font-display text-3xl font-bold"><span id="statHabitsDone">0</span><span class="text-base-400 dark:text-base-500 text-lg">/<span id="statHabitsTotal">0</span></span></p>
+        <div class="w-full h-1.5 bg-base-200 dark:bg-base-800 rounded-full mt-3 overflow-hidden">
+          <div id="habitsBar" class="h-full bg-accent-500 rounded-full transition-all duration-500" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold uppercase tracking-wide text-base-500 dark:text-base-400">Current Streak</span>
+          <i class="fa-solid fa-fire text-amber-500"></i>
+        </div>
+        <p class="font-display text-3xl font-bold" id="statCurrentStreak">0</p>
+        <p class="text-xs text-base-500 dark:text-base-400 mt-2">Best: <span id="statBestStreak">0</span> days</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TASKS ============ -->
+  <section id="tasks" class="section-block space-y-5">
+    <div class="flex items-center justify-between">
+      <h2 class="font-display font-bold text-2xl tracking-tight">Tasks</h2>
+      <button id="openAddTaskBtn" class="btn-primary">
+        <i class="fa-solid fa-plus text-xs"></i> Add Task
+      </button>
+    </div>
+
+    <!-- Controls -->
+    <div class="card p-4 space-y-3">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-base-400 text-sm"></i>
+        <input id="taskSearch" type="text" placeholder="Search tasks..." class="input-field pl-10" aria-label="Search tasks">
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <select id="filterStatus" class="select-field" aria-label="Filter by status">
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select id="filterPriority" class="select-field" aria-label="Filter by priority">
+          <option value="all">All Priorities</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <select id="filterDue" class="select-field" aria-label="Filter by due date">
+          <option value="all">Any Due Date</option>
+          <option value="overdue">Overdue</option>
+          <option value="today">Due Today</option>
+          <option value="week">Due This Week</option>
+          <option value="none">No Due Date</option>
+        </select>
+        <select id="sortTasks" class="select-field ml-auto" aria-label="Sort tasks">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="priority">By Priority</option>
+          <option value="due">By Due Date</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="taskList" class="space-y-2.5"></div>
+    <div id="taskEmptyState" class="empty-state hidden"></div>
+  </section>
+
+  <!-- ============ HABITS ============ -->
+  <section id="habits" class="section-block space-y-5">
+    <div class="flex items-center justify-between">
+      <h2 class="font-display font-bold text-2xl tracking-tight">Habits</h2>
+      <button id="openAddHabitBtn" class="btn-primary">
+        <i class="fa-solid fa-plus text-xs"></i> Add Habit
+      </button>
+    </div>
+
+    <div id="habitList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    <div id="habitEmptyState" class="empty-state hidden"></div>
+  </section>
+
+  <!-- ============ AI COACH ============ -->
+  <section id="coach" class="section-block space-y-5">
+    <div>
+      <h2 class="font-display font-bold text-2xl tracking-tight">AI Productivity Coach <i class="fa-solid fa-robot text-accent-500 text-xl"></i></h2>
+      <p class="text-xs text-base-500 dark:text-base-400 mt-1 inline-flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span>
+        AI Coach — Smart Productivity Simulator (rule-based, runs fully on-device, no external AI API)
+      </p>
+    </div>
+
+    <div class="card p-5 sm:p-6 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <p class="text-sm text-base-600 dark:text-base-300 max-w-lg">Get a quick read on your day based on your actual tasks and habits — no guesswork, just your own data reflected back at you.</p>
+        <button id="getTipsBtn" class="btn-primary shrink-0">
+          <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Get AI Productivity Tips
+        </button>
+      </div>
+      <div id="coachTips" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+    </div>
+
+    <div class="card p-5 sm:p-6 space-y-4">
+      <h3 class="font-display font-semibold text-base">Ask your productivity coach</h3>
+      <div id="coachChat" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
+      <form id="coachForm" class="flex gap-2">
+        <input id="coachInput" type="text" placeholder="e.g. What should I do first?" class="input-field flex-1" aria-label="Ask your productivity coach">
+        <button type="submit" class="btn-primary px-4"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+      <div class="flex flex-wrap gap-2">
+        <button class="chip-suggest" data-q="What should I do first?">What should I do first?</button>
+        <button class="chip-suggest" data-q="How are my habits doing?">How are my habits doing?</button>
+        <button class="chip-suggest" data-q="Give me a plan for today.">Give me a plan for today.</button>
+        <button class="chip-suggest" data-q="Why am I falling behind?">Why am I falling behind?</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ANALYTICS ============ -->
+  <section id="analytics" class="section-block space-y-5">
+    <h2 class="font-display font-bold text-2xl tracking-tight">Analytics</h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="card p-5 lg:col-span-2 space-y-4">
+        <h3 class="font-display font-semibold text-sm text-base-500 dark:text-base-400 uppercase tracking-wide">Task Progress</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div><p class="text-2xl font-display font-bold" id="anTotalTasks">0</p><p class="text-xs text-base-500 dark:text-base-400">Total</p></div>
+          <div><p class="text-2xl font-display font-bold" id="anActiveTasks">0</p><p class="text-xs text-base-500 dark:text-base-400">Active</p></div>
+          <div><p class="text-2xl font-display font-bold" id="anCompletedTasks">0</p><p class="text-xs text-base-500 dark:text-base-400">Completed</p></div>
+          <div><p class="text-2xl font-display font-bold text-coral-500" id="anHighPriority">0</p><p class="text-xs text-base-500 dark:text-base-400">High Priority Active</p></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1.5 text-base-500 dark:text-base-400">
+            <span>Overall completion</span><span id="anCompletionPct">0%</span>
+          </div>
+          <div class="w-full h-2.5 bg-base-200 dark:bg-base-800 rounded-full overflow-hidden">
+            <div id="anCompletionBar" class="h-full bg-gradient-to-r from-accent-400 to-accent-600 rounded-full transition-all duration-700" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-5 space-y-4">
+        <h3 class="font-display font-semibold text-sm text-base-500 dark:text-base-400 uppercase tracking-wide">Habits</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div><p class="text-2xl font-display font-bold" id="anTotalHabits">0</p><p class="text-xs text-base-500 dark:text-base-400">Total Habits</p></div>
+          <div><p class="text-2xl font-display font-bold" id="anTodayHabits">0%</p><p class="text-xs text-base-500 dark:text-base-400">Today's Completion</p></div>
+          <div><p class="text-2xl font-display font-bold text-amber-500" id="anCurrentStreak">0</p><p class="text-xs text-base-500 dark:text-base-400">Current Streak</p></div>
+          <div><p class="text-2xl font-display font-bold" id="anBestStreak">0</p><p class="text-xs text-base-500 dark:text-base-400">Best Streak</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-5 space-y-3">
+      <h3 class="font-display font-semibold text-sm text-base-500 dark:text-base-400 uppercase tracking-wide">Weekly Habit Overview (all habits combined)</h3>
+      <div id="weeklyOverview" class="grid grid-cols-7 gap-2"></div>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="settings" class="section-block space-y-5 pb-8">
+    <h2 class="font-display font-bold text-2xl tracking-tight">Settings</h2>
+    <div class="card p-5 sm:p-6 space-y-5">
+      <div>
+        <h3 class="font-display font-semibold text-base mb-1">Data</h3>
+        <p class="text-sm text-base-500 dark:text-base-400">Your data lives only in this browser's LocalStorage. Export a backup or move it to another device.</p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <button id="exportBtn" class="btn-secondary"><i class="fa-solid fa-download text-xs"></i> Export Data</button>
+        <label class="btn-secondary cursor-pointer">
+          <i class="fa-solid fa-upload text-xs"></i> Import Data
+          <input type="file" id="importInput" accept="application/json" class="hidden">
+        </label>
+        <button id="clearDataBtn" class="btn-danger"><i class="fa-solid fa-trash text-xs"></i> Clear All Data</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="border-t border-base-200 dark:border-base-800 py-6 text-center text-xs text-base-400 dark:text-base-500">
+  Pulse — AI-Assisted Task &amp; Habit Tracker · Built by Tariful Hoque
+</footer>
+
+<!-- ============ TASK MODAL ============ -->
+<div id="taskModalOverlay" class="modal-overlay hidden">
+  <div id="taskModal" class="modal-panel">
+    <div class="flex items-center justify-between mb-5">
+      <h3 id="taskModalTitle" class="font-display font-bold text-lg">Add Task</h3>
+      <button id="closeTaskModal" class="modal-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="taskForm" class="space-y-4">
+      <input type="hidden" id="taskId">
+      <div>
+        <label for="taskTitle" class="form-label">Task Title <span class="text-coral-500">*</span></label>
+        <input id="taskTitle" type="text" class="input-field" placeholder="e.g. Finish project proposal" maxlength="120">
+        <p id="taskTitleError" class="form-error hidden">Please give your task a title.</p>
+      </div>
+      <div>
+        <label for="taskDescription" class="form-label">Description</label>
+        <textarea id="taskDescription" rows="3" class="input-field resize-none" placeholder="Optional details..." maxlength="500"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="taskPriority" class="form-label">Priority</label>
+          <select id="taskPriority" class="select-field w-full">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div>
+          <label for="taskDueDate" class="form-label">Due Date</label>
+          <input id="taskDueDate" type="date" class="input-field">
+        </div>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="cancelTaskBtn" class="btn-secondary flex-1">Cancel</button>
+        <button type="submit" class="btn-primary flex-1 justify-center">Save Task</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ HABIT MODAL ============ -->
+<div id="habitModalOverlay" class="modal-overlay hidden">
+  <div id="habitModal" class="modal-panel">
+    <div class="flex items-center justify-between mb-5">
+      <h3 id="habitModalTitle" class="font-display font-bold text-lg">Add Habit</h3>
+      <button id="closeHabitModal" class="modal-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="habitForm" class="space-y-4">
+      <input type="hidden" id="habitId">
+      <div>
+        <label for="habitName" class="form-label">Habit Name <span class="text-coral-500">*</span></label>
+        <input id="habitName" type="text" class="input-field" placeholder="e.g. Read 20 minutes" maxlength="80">
+        <p id="habitNameError" class="form-error hidden">Please name your habit.</p>
+      </div>
+      <div>
+        <label for="habitIcon" class="form-label">Icon</label>
+        <select id="habitIcon" class="select-field w-full">
+          <option value="fa-book-open">📖 Reading</option>
+          <option value="fa-dumbbell">🏋️ Exercise</option>
+          <option value="fa-droplet">💧 Water</option>
+          <option value="fa-brain">🧠 Study / Learning</option>
+          <option value="fa-mosque">🕌 Prayer</option>
+          <option value="fa-code">💻 Coding</option>
+          <option value="fa-bed">🛌 Sleep</option>
+          <option value="fa-heart">❤️ Wellness</option>
+          <option value="fa-star">⭐ General</option>
+        </select>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="cancelHabitBtn" class="btn-secondary flex-1">Cancel</button>
+        <button type="submit" class="btn-primary flex-1 justify-center">Save Habit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ CONFIRM DIALOG ============ -->
+<div id="confirmOverlay" class="modal-overlay hidden">
+  <div class="modal-panel max-w-sm">
+    <div class="w-11 h-11 rounded-xl bg-coral-500/10 text-coral-500 flex items-center justify-center mb-4">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <h3 id="confirmTitle" class="font-display font-bold text-lg mb-2">Are you sure?</h3>
+    <p id="confirmMessage" class="text-sm text-base-500 dark:text-base-400 mb-5">This action cannot be undone.</p>
+    <div class="flex gap-3">
+      <button id="confirmCancelBtn" class="btn-secondary flex-1">Cancel</button>
+      <button id="confirmOkBtn" class="btn-danger flex-1 justify-center">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
