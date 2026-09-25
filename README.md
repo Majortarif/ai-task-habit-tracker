@@ -287,15 +287,6 @@ Users can interact with the productivity assistant to receive contextual suggest
 
 ---
 
-## 🌐 Live Demo
-
-### 🚀 Try the Application
-
-**[Open Live Demo →](YOUR-NETLIFY-LINK)**
-
-> The application runs completely in the browser and does not require account creation, backend services, or API keys.
-
----
 
 ## 💻 Run Locally
 
